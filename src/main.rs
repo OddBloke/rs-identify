@@ -3,10 +3,40 @@ use std::fs::{create_dir_all, File};
 use std::io::Write;
 use std::path::PathBuf;
 
+struct DMIHelper<'a> {
+    path_root: &'a PathBuf,
+}
+
+impl<'a> DMIHelper<'_> {
+    fn new(path_root: &'a PathBuf) -> DMIHelper<'a> {
+        DMIHelper {
+            path_root,
+        }
+    }
+
+    fn get_dmi_field(self, field_name: &str) -> String {
+        let mut path = PathBuf::from(self.path_root.clone());
+        path.push("sys/class/dmi/id");
+        path.push(field_name);
+
+        // TODO: Handle missing DMI values
+        std::fs::read_to_string(&path).unwrap().trim().to_string()
+    }
+
+    fn dmi_product_name(self) -> String {
+        // TODO: calculate once and store
+        // TODO: container check
+        self.get_dmi_field("product_name")
+    }
+}
+
 struct RsIdentify {
     // Paths
     path_root: PathBuf,
     cfg_out: PathBuf,
+
+    // DMI values
+    dmi_product_name: String,
 }
 
 impl RsIdentify {
@@ -15,11 +45,14 @@ impl RsIdentify {
         let mut cfg_out = PathBuf::from(path_root.clone());
         cfg_out.push("run/cloud-init/cloud.cfg");
 
+        let dmi_helper = DMIHelper::new(&path_root);
+        let dmi_product_name = dmi_helper.dmi_product_name();
+
         // Emit our paths/settings
         println!("PATH_ROOT: {}", path_root.display());
         println!("CFG_OUT: {}", cfg_out.display());
 
-        RsIdentify { path_root, cfg_out }
+        RsIdentify { path_root, cfg_out, dmi_product_name}
     }
 
     fn from_env() -> RsIdentify {
@@ -33,7 +66,12 @@ impl RsIdentify {
     // Datasource checks
     fn dscheck_AliYun(&self) -> bool {
         // TODO: seed directory checks
-        dmi_product_name() == "Alibaba Cloud ECS"
+        self.dmi_product_name == "Alibaba Cloud ECS"
+    }
+
+    fn dscheck_Exoscale(&self) -> bool {
+        // TEST GAP: I didn't need to implement Exoscale support
+        self.dmi_product_name == "Exoscale"
     }
 
     // Output
@@ -95,7 +133,7 @@ impl RsIdentify {
         for cloud_d_path in cloud_d_paths {
             list = self.get_datasource_list_from_path(&cloud_d_path).or(list);
         }
-        list.unwrap_or(vec!["AliYun".to_string()])
+        list.unwrap_or(vec!["AliYun".to_string(), "Exoscale".to_string()])
     }
 
     // Identify
@@ -110,7 +148,12 @@ impl RsIdentify {
                     if self.dscheck_AliYun() {
                         output_datasource_list.push("AliYun".to_string());
                     }
-                }
+                },
+                "Exoscale" =>{
+                    if self.dscheck_Exoscale() {
+                        output_datasource_list.push("Exoscale".to_string());
+                    }
+                },
                 _ => (),
             };
             println!("{}", candidate_datasource);
@@ -123,12 +166,6 @@ impl RsIdentify {
         // Persist
         self.write_cfg_out(output_datasource_list);
     }
-}
-
-// Helpers
-
-fn dmi_product_name() -> String {
-    "Alibaba Cloud ECS".to_string()
 }
 
 // Datasource checks
