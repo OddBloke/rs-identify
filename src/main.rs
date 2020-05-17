@@ -59,22 +59,18 @@ impl RsIdentify {
         cfg_out.push("run/cloud-init/cloud.cfg");
 
         let dmi_helper = DMIHelper::new(&path_root);
-        let dmi_chassis_asset_tag = dmi_helper.dmi_chassis_asset_tag();
-        let dmi_product_name = dmi_helper.dmi_product_name();
-        let dmi_product_serial = dmi_helper.dmi_product_serial();
-        let dmi_product_uuid = dmi_helper.dmi_product_uuid();
 
         // Emit our paths/settings
         println!("PATH_ROOT: {}", path_root.display());
         println!("CFG_OUT: {}", cfg_out.display());
 
         RsIdentify {
+            dmi_chassis_asset_tag: dmi_helper.dmi_chassis_asset_tag(),
+            dmi_product_name: dmi_helper.dmi_product_name(),
+            dmi_product_serial: dmi_helper.dmi_product_serial(),
+            dmi_product_uuid: dmi_helper.dmi_product_uuid(),
             path_root,
             cfg_out,
-            dmi_chassis_asset_tag,
-            dmi_product_name,
-            dmi_product_serial,
-            dmi_product_uuid,
         }
     }
 
