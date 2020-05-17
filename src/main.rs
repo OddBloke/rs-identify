@@ -100,7 +100,17 @@ impl RsIdentify {
         user_data_path.push("var/lib/cloud/seed/nocloud/user-data");
         meta_data_path.push("var/lib/cloud/seed/nocloud/meta-data");
 
+        // TEST GAP: nocloud and nocloud-net are not tested for both seed types
+        let mut writable_user_data_path = PathBuf::from(self.path_root.clone());
+        let mut writable_meta_data_path = PathBuf::from(self.path_root.clone());
+
+        writable_user_data_path
+            .push("writable/system-data/var/lib/cloud/seed/nocloud-net/user-data");
+        writable_meta_data_path
+            .push("writable/system-data/var/lib/cloud/seed/nocloud-net/meta-data");
+
         user_data_path.exists() && meta_data_path.exists()
+            || writable_user_data_path.exists() && writable_meta_data_path.exists()
     }
 
     // Output
