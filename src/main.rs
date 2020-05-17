@@ -35,6 +35,10 @@ impl<'a> DMIHelper<'_> {
     fn dmi_product_serial(&self) -> Option<String> {
         self.get_dmi_field("product_serial")
     }
+
+    fn dmi_product_uuid(&self) -> Option<String> {
+        self.get_dmi_field("product_uuid")
+    }
 }
 
 struct RsIdentify {
@@ -46,6 +50,7 @@ struct RsIdentify {
     dmi_chassis_asset_tag: Option<String>,
     dmi_product_name: Option<String>,
     dmi_product_serial: Option<String>,
+    dmi_product_uuid: Option<String>,
 }
 
 impl RsIdentify {
@@ -58,6 +63,7 @@ impl RsIdentify {
         let dmi_chassis_asset_tag = dmi_helper.dmi_chassis_asset_tag();
         let dmi_product_name = dmi_helper.dmi_product_name();
         let dmi_product_serial = dmi_helper.dmi_product_serial();
+        let dmi_product_uuid = dmi_helper.dmi_product_uuid();
 
         // Emit our paths/settings
         println!("PATH_ROOT: {}", path_root.display());
@@ -69,6 +75,7 @@ impl RsIdentify {
             dmi_chassis_asset_tag,
             dmi_product_name,
             dmi_product_serial,
+            dmi_product_uuid,
         }
     }
 
@@ -107,6 +114,25 @@ impl RsIdentify {
 
     fn dscheck_ConfigDrive(&self) -> bool {
         self.seed_path_exists(None, "config_drive", "openstack/latest/meta_data.json")
+    }
+
+    fn dscheck_Ec2(&self) -> bool {
+        // TEST_GAP: One of serial or UUID can be missing
+        // TEST GAP: Serial and UUID equality is not exercised
+        let serial = self
+            .dmi_product_serial
+            .as_ref()
+            .map(|s| s.to_ascii_lowercase());
+        let uuid = self
+            .dmi_product_uuid
+            .as_ref()
+            .map(|s| s.to_ascii_lowercase());
+        serial
+            .as_ref()
+            .map(|s| s.starts_with("ec2"))
+            .unwrap_or(false)
+            && uuid.as_ref().map(|s| s.starts_with("ec2")).unwrap_or(false)
+            && serial == uuid
     }
 
     fn dscheck_Exoscale(&self) -> bool {
@@ -198,6 +224,7 @@ impl RsIdentify {
             "AliYun".to_string(),
             "Azure".to_string(),
             "ConfigDrive".to_string(),
+            "Ec2".to_string(),
             "Exoscale".to_string(),
             "GCE".to_string(),
             "NoCloud".to_string(),
@@ -216,6 +243,7 @@ impl RsIdentify {
                 "AliYun" => self.dscheck_AliYun(),
                 "Azure" => self.dscheck_Azure(),
                 "ConfigDrive" => self.dscheck_ConfigDrive(),
+                "Ec2" => self.dscheck_Ec2(),
                 "Exoscale" => self.dscheck_Exoscale(),
                 "GCE" => self.dscheck_GCE(),
                 "NoCloud" => self.dscheck_NoCloud(),
