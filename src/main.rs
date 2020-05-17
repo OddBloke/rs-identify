@@ -95,11 +95,13 @@ impl RsIdentify {
     }
 
     // Datasource checks
+    #[allow(non_snake_case)]
     fn dscheck_AliYun(&self) -> bool {
         // TEST GAP: seed directory checks
         self.dmi_product_name == Some("Alibaba Cloud ECS".to_string())
     }
 
+    #[allow(non_snake_case)]
     fn dscheck_Azure(&self) -> bool {
         if self.seed_path_exists(None, "azure", "ovf-env.xml") {
             return true;
@@ -107,10 +109,12 @@ impl RsIdentify {
         self.dmi_chassis_asset_tag == Some("7783-7084-3265-9085-8269-3286-77".to_string())
     }
 
+    #[allow(non_snake_case)]
     fn dscheck_ConfigDrive(&self) -> bool {
         self.seed_path_exists(None, "config_drive", "openstack/latest/meta_data.json")
     }
 
+    #[allow(non_snake_case)]
     fn dscheck_Ec2(&self) -> bool {
         // TEST_GAP: One of serial or UUID can be missing
         // TEST GAP: Serial and UUID equality is not exercised
@@ -130,11 +134,13 @@ impl RsIdentify {
             && serial == uuid
     }
 
+    #[allow(non_snake_case)]
     fn dscheck_Exoscale(&self) -> bool {
         // TEST GAP: I didn't need to implement Exoscale support
         self.dmi_product_name == Some("Exoscale".to_string())
     }
 
+    #[allow(non_snake_case)]
     fn dscheck_GCE(&self) -> bool {
         self.dmi_product_name == Some("Google Compute Engine".to_string())
             || self
@@ -144,6 +150,7 @@ impl RsIdentify {
                 .unwrap_or(false)
     }
 
+    #[allow(non_snake_case)]
     fn dscheck_NoCloud(&self) -> bool {
         // TEST GAP: nocloud and nocloud-net are not tested for both writable and regular paths
         for seed_type in &["nocloud", "nocloud-net"] {
