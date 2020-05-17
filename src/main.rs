@@ -76,6 +76,10 @@ impl RsIdentify {
         self.dmi_product_name == "Exoscale"
     }
 
+    fn dscheck_GCE(&self) -> bool {
+        self.dmi_product_name == "Google Compute Engine"
+    }
+
     // Output
     fn write_cfg_out(self, datasource_list: Vec<String>) {
         create_dir_all(self.cfg_out.parent().unwrap()).unwrap();
@@ -135,7 +139,11 @@ impl RsIdentify {
         for cloud_d_path in cloud_d_paths {
             list = self.get_datasource_list_from_path(&cloud_d_path).or(list);
         }
-        list.unwrap_or(vec!["AliYun".to_string(), "Exoscale".to_string()])
+        list.unwrap_or(vec![
+            "AliYun".to_string(),
+            "Exoscale".to_string(),
+            "GCE".to_string(),
+        ])
     }
 
     // Identify
@@ -148,6 +156,7 @@ impl RsIdentify {
             let ds_applies = match candidate_datasource.as_str() {
                 "AliYun" => self.dscheck_AliYun(),
                 "Exoscale" => self.dscheck_Exoscale(),
+                "GCE" => self.dscheck_GCE(),
                 _ => false,
             };
             println!("{}", candidate_datasource);
