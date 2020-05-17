@@ -79,6 +79,14 @@ impl RsIdentify {
         self.dmi_product_name == Some("Alibaba Cloud ECS".to_string())
     }
 
+    fn dscheck_ConfigDrive(&self) -> bool {
+        let mut meta_data_path = PathBuf::from(self.path_root.clone());
+
+        meta_data_path.push("var/lib/cloud/seed/config_drive/openstack/latest/meta_data.json");
+
+        meta_data_path.exists()
+    }
+
     fn dscheck_Exoscale(&self) -> bool {
         // TEST GAP: I didn't need to implement Exoscale support
         self.dmi_product_name == Some("Exoscale".to_string())
@@ -177,6 +185,7 @@ impl RsIdentify {
         }
         list.unwrap_or(vec![
             "AliYun".to_string(),
+            "ConfigDrive".to_string(),
             "Exoscale".to_string(),
             "GCE".to_string(),
             "NoCloud".to_string(),
@@ -193,6 +202,7 @@ impl RsIdentify {
             let ds_applies = match candidate_datasource.as_str() {
                 // TEST GAP: These DSes have no tests: CloudStack, CloudSigma, Exoscale, MAAS
                 "AliYun" => self.dscheck_AliYun(),
+                "ConfigDrive" => self.dscheck_ConfigDrive(),
                 "Exoscale" => self.dscheck_Exoscale(),
                 "GCE" => self.dscheck_GCE(),
                 "NoCloud" => self.dscheck_NoCloud(),
