@@ -12,7 +12,7 @@ impl<'a> DMIHelper<'_> {
         DMIHelper { path_root }
     }
 
-    fn get_dmi_field(&self, field_name: &str) -> Option<String> {
+    fn get_field(&self, field_name: &str) -> Option<String> {
         let mut path = PathBuf::from(self.path_root.clone());
         path.push("sys/class/dmi/id");
         path.push(field_name);
@@ -22,21 +22,21 @@ impl<'a> DMIHelper<'_> {
             .ok()
     }
 
-    fn dmi_chassis_asset_tag(&self) -> Option<String> {
-        self.get_dmi_field("chassis_asset_tag")
+    fn chassis_asset_tag(&self) -> Option<String> {
+        self.get_field("chassis_asset_tag")
     }
 
-    fn dmi_product_name(&self) -> Option<String> {
+    fn product_name(&self) -> Option<String> {
         // TODO: container check
-        self.get_dmi_field("product_name")
+        self.get_field("product_name")
     }
 
-    fn dmi_product_serial(&self) -> Option<String> {
-        self.get_dmi_field("product_serial")
+    fn product_serial(&self) -> Option<String> {
+        self.get_field("product_serial")
     }
 
-    fn dmi_product_uuid(&self) -> Option<String> {
-        self.get_dmi_field("product_uuid")
+    fn product_uuid(&self) -> Option<String> {
+        self.get_field("product_uuid")
     }
 }
 
@@ -65,10 +65,10 @@ impl RsIdentify {
         println!("CFG_OUT: {}", cfg_out.display());
 
         RsIdentify {
-            dmi_chassis_asset_tag: dmi_helper.dmi_chassis_asset_tag(),
-            dmi_product_name: dmi_helper.dmi_product_name(),
-            dmi_product_serial: dmi_helper.dmi_product_serial(),
-            dmi_product_uuid: dmi_helper.dmi_product_uuid(),
+            dmi_chassis_asset_tag: dmi_helper.chassis_asset_tag(),
+            dmi_product_name: dmi_helper.product_name(),
+            dmi_product_serial: dmi_helper.product_serial(),
+            dmi_product_uuid: dmi_helper.product_uuid(),
             path_root,
             cfg_out,
         }
