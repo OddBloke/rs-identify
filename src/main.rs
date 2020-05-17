@@ -27,7 +27,6 @@ impl<'a> DMIHelper<'_> {
     }
 
     fn dmi_product_name(&self) -> Option<String> {
-        // TODO: calculate once and store
         // TODO: container check
         self.get_dmi_field("product_name")
     }
