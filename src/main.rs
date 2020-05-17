@@ -87,7 +87,7 @@ impl RsIdentify {
 
     // Datasource checks
     fn dscheck_AliYun(&self) -> bool {
-        // TODO: seed directory checks
+        // TEST GAP: seed directory checks
         self.dmi_product_name == Some("Alibaba Cloud ECS".to_string())
     }
 
