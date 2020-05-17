@@ -22,6 +22,10 @@ impl<'a> DMIHelper<'_> {
             .ok()
     }
 
+    fn dmi_chassis_asset_tag(&self) -> Option<String> {
+        self.get_dmi_field("chassis_asset_tag")
+    }
+
     fn dmi_product_name(&self) -> Option<String> {
         // TODO: calculate once and store
         // TODO: container check
@@ -39,6 +43,7 @@ struct RsIdentify {
     cfg_out: PathBuf,
 
     // DMI values
+    dmi_chassis_asset_tag: Option<String>,
     dmi_product_name: Option<String>,
     dmi_product_serial: Option<String>,
 }
@@ -50,6 +55,7 @@ impl RsIdentify {
         cfg_out.push("run/cloud-init/cloud.cfg");
 
         let dmi_helper = DMIHelper::new(&path_root);
+        let dmi_chassis_asset_tag = dmi_helper.dmi_chassis_asset_tag();
         let dmi_product_name = dmi_helper.dmi_product_name();
         let dmi_product_serial = dmi_helper.dmi_product_serial();
 
@@ -60,6 +66,7 @@ impl RsIdentify {
         RsIdentify {
             path_root,
             cfg_out,
+            dmi_chassis_asset_tag,
             dmi_product_name,
             dmi_product_serial,
         }
@@ -92,7 +99,10 @@ impl RsIdentify {
     }
 
     fn dscheck_Azure(&self) -> bool {
-        self.seed_path_exists(None, "azure", "ovf-env.xml")
+        if self.seed_path_exists(None, "azure", "ovf-env.xml") {
+            return true;
+        }
+        self.dmi_chassis_asset_tag == Some("7783-7084-3265-9085-8269-3286-77".to_string())
     }
 
     fn dscheck_ConfigDrive(&self) -> bool {
