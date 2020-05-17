@@ -12,16 +12,17 @@ impl<'a> DMIHelper<'_> {
         DMIHelper { path_root }
     }
 
-    fn get_dmi_field(self, field_name: &str) -> String {
+    fn get_dmi_field(self, field_name: &str) -> Option<String> {
         let mut path = PathBuf::from(self.path_root.clone());
         path.push("sys/class/dmi/id");
         path.push(field_name);
 
-        // TODO: Handle missing DMI values
-        std::fs::read_to_string(&path).unwrap().trim().to_string()
+        std::fs::read_to_string(&path)
+            .map(|s| s.trim().to_string())
+            .ok()
     }
 
-    fn dmi_product_name(self) -> String {
+    fn dmi_product_name(self) -> Option<String> {
         // TODO: calculate once and store
         // TODO: container check
         self.get_dmi_field("product_name")
@@ -34,7 +35,7 @@ struct RsIdentify {
     cfg_out: PathBuf,
 
     // DMI values
-    dmi_product_name: String,
+    dmi_product_name: Option<String>,
 }
 
 impl RsIdentify {
@@ -68,16 +69,16 @@ impl RsIdentify {
     // Datasource checks
     fn dscheck_AliYun(&self) -> bool {
         // TODO: seed directory checks
-        self.dmi_product_name == "Alibaba Cloud ECS"
+        self.dmi_product_name == Some("Alibaba Cloud ECS".to_string())
     }
 
     fn dscheck_Exoscale(&self) -> bool {
         // TEST GAP: I didn't need to implement Exoscale support
-        self.dmi_product_name == "Exoscale"
+        self.dmi_product_name == Some("Exoscale".to_string())
     }
 
     fn dscheck_GCE(&self) -> bool {
-        self.dmi_product_name == "Google Compute Engine"
+        self.dmi_product_name == Some("Google Compute Engine".to_string())
     }
 
     // Output
