@@ -145,15 +145,21 @@ impl RsIdentify {
     }
 
     fn dscheck_NoCloud(&self) -> bool {
-        if self.seed_path_exists(None, "nocloud", "user-data")
-            && self.seed_path_exists(None, "nocloud", "meta-data")
-        {
-            return true;
-        }
+        // TEST GAP: nocloud and nocloud-net are not tested for both writable and regular paths
+        for seed_type in &["nocloud", "nocloud-net"] {
+            if self.seed_path_exists(None, seed_type, "user-data")
+                && self.seed_path_exists(None, seed_type, "meta-data")
+            {
+                return true;
+            }
 
-        // TEST GAP: nocloud and nocloud-net are not tested for both seed types
-        self.seed_path_exists(Some("writable/system-data"), "nocloud-net", "user-data")
-            && self.seed_path_exists(Some("writable/system-data"), "nocloud-net", "meta-data")
+            if self.seed_path_exists(Some("writable/system-data"), seed_type, "user-data")
+                && self.seed_path_exists(Some("writable/system-data"), seed_type, "meta-data")
+            {
+                return true;
+            }
+        }
+        false
     }
 
     // Output
