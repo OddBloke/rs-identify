@@ -145,20 +145,15 @@ impl RsIdentify {
 
         let mut output_datasource_list = vec![];
         for candidate_datasource in input_datasource_list {
-            match candidate_datasource.as_str() {
-                "AliYun" => {
-                    if self.dscheck_AliYun() {
-                        output_datasource_list.push("AliYun".to_string());
-                    }
-                },
-                "Exoscale" =>{
-                    if self.dscheck_Exoscale() {
-                        output_datasource_list.push("Exoscale".to_string());
-                    }
-                },
-                _ => (),
+            let ds_applies = match candidate_datasource.as_str() {
+                "AliYun" => self.dscheck_AliYun(),
+                "Exoscale" => self.dscheck_Exoscale(),
+                _ => false,
             };
             println!("{}", candidate_datasource);
+            if ds_applies {
+                output_datasource_list.push(candidate_datasource);
+            }
         }
 
         if !output_datasource_list.contains(&"None".to_string()) {
