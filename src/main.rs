@@ -9,9 +9,7 @@ struct DMIHelper<'a> {
 
 impl<'a> DMIHelper<'_> {
     fn new(path_root: &'a PathBuf) -> DMIHelper<'a> {
-        DMIHelper {
-            path_root,
-        }
+        DMIHelper { path_root }
     }
 
     fn get_dmi_field(self, field_name: &str) -> String {
@@ -52,7 +50,11 @@ impl RsIdentify {
         println!("PATH_ROOT: {}", path_root.display());
         println!("CFG_OUT: {}", cfg_out.display());
 
-        RsIdentify { path_root, cfg_out, dmi_product_name}
+        RsIdentify {
+            path_root,
+            cfg_out,
+            dmi_product_name,
+        }
     }
 
     fn from_env() -> RsIdentify {
