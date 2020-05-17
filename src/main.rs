@@ -73,6 +73,18 @@ impl RsIdentify {
         RsIdentify::new(path_root)
     }
 
+    // Helpers
+    fn seed_path_exists(&self, prefix: Option<&str>, seed_type: &str, filename: &str) -> bool {
+        let mut seed_path = PathBuf::from(self.path_root.clone());
+        if let Some(prefix) = prefix {
+            seed_path.push(prefix);
+        }
+        seed_path.push("var/lib/cloud/seed");
+        seed_path.push(seed_type);
+        seed_path.push(filename);
+        seed_path.exists()
+    }
+
     // Datasource checks
     fn dscheck_AliYun(&self) -> bool {
         // TODO: seed directory checks
@@ -80,11 +92,7 @@ impl RsIdentify {
     }
 
     fn dscheck_ConfigDrive(&self) -> bool {
-        let mut meta_data_path = PathBuf::from(self.path_root.clone());
-
-        meta_data_path.push("var/lib/cloud/seed/config_drive/openstack/latest/meta_data.json");
-
-        meta_data_path.exists()
+        self.seed_path_exists(None, "config_drive", "openstack/latest/meta_data.json")
     }
 
     fn dscheck_Exoscale(&self) -> bool {
@@ -102,26 +110,15 @@ impl RsIdentify {
     }
 
     fn dscheck_NoCloud(&self) -> bool {
-        let mut user_data_path = PathBuf::from(self.path_root.clone());
-        let mut meta_data_path = PathBuf::from(self.path_root.clone());
-
-        user_data_path.push("var/lib/cloud/seed/nocloud/user-data");
-        meta_data_path.push("var/lib/cloud/seed/nocloud/meta-data");
-
-        if user_data_path.exists() && meta_data_path.exists() {
+        if self.seed_path_exists(None, "nocloud", "user-data")
+            && self.seed_path_exists(None, "nocloud", "meta-data")
+        {
             return true;
         }
 
         // TEST GAP: nocloud and nocloud-net are not tested for both seed types
-        let mut writable_user_data_path = PathBuf::from(self.path_root.clone());
-        let mut writable_meta_data_path = PathBuf::from(self.path_root.clone());
-
-        writable_user_data_path
-            .push("writable/system-data/var/lib/cloud/seed/nocloud-net/user-data");
-        writable_meta_data_path
-            .push("writable/system-data/var/lib/cloud/seed/nocloud-net/meta-data");
-
-        writable_user_data_path.exists() && writable_meta_data_path.exists()
+        self.seed_path_exists(Some("writable/system-data"), "nocloud-net", "user-data")
+            && self.seed_path_exists(Some("writable/system-data"), "nocloud-net", "meta-data")
     }
 
     // Output
