@@ -77,7 +77,7 @@ impl RsIdentify {
     fn from_env() -> RsIdentify {
         let path_root = match std::env::var("PATH_ROOT") {
             Ok(val) => PathBuf::from(&val),
-            Err(_) => std::process::exit(1),
+            Err(_) => PathBuf::from("/"),
         };
         RsIdentify::new(path_root)
     }
