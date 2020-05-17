@@ -12,7 +12,7 @@ impl<'a> DMIHelper<'_> {
         DMIHelper { path_root }
     }
 
-    fn get_dmi_field(self, field_name: &str) -> Option<String> {
+    fn get_dmi_field(&self, field_name: &str) -> Option<String> {
         let mut path = PathBuf::from(self.path_root.clone());
         path.push("sys/class/dmi/id");
         path.push(field_name);
@@ -22,10 +22,14 @@ impl<'a> DMIHelper<'_> {
             .ok()
     }
 
-    fn dmi_product_name(self) -> Option<String> {
+    fn dmi_product_name(&self) -> Option<String> {
         // TODO: calculate once and store
         // TODO: container check
         self.get_dmi_field("product_name")
+    }
+
+    fn dmi_product_serial(&self) -> Option<String> {
+        self.get_dmi_field("product_serial")
     }
 }
 
@@ -36,6 +40,7 @@ struct RsIdentify {
 
     // DMI values
     dmi_product_name: Option<String>,
+    dmi_product_serial: Option<String>,
 }
 
 impl RsIdentify {
@@ -46,6 +51,7 @@ impl RsIdentify {
 
         let dmi_helper = DMIHelper::new(&path_root);
         let dmi_product_name = dmi_helper.dmi_product_name();
+        let dmi_product_serial = dmi_helper.dmi_product_serial();
 
         // Emit our paths/settings
         println!("PATH_ROOT: {}", path_root.display());
@@ -55,6 +61,7 @@ impl RsIdentify {
             path_root,
             cfg_out,
             dmi_product_name,
+            dmi_product_serial,
         }
     }
 
@@ -79,6 +86,11 @@ impl RsIdentify {
 
     fn dscheck_GCE(&self) -> bool {
         self.dmi_product_name == Some("Google Compute Engine".to_string())
+            || self
+                .dmi_product_serial
+                .as_ref()
+                .map(|serial| serial.starts_with("GoogleCloud"))
+                .unwrap_or(false)
     }
 
     // Output
