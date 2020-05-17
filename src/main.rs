@@ -91,6 +91,10 @@ impl RsIdentify {
         self.dmi_product_name == Some("Alibaba Cloud ECS".to_string())
     }
 
+    fn dscheck_Azure(&self) -> bool {
+        self.seed_path_exists(None, "azure", "ovf-env.xml")
+    }
+
     fn dscheck_ConfigDrive(&self) -> bool {
         self.seed_path_exists(None, "config_drive", "openstack/latest/meta_data.json")
     }
@@ -182,6 +186,7 @@ impl RsIdentify {
         }
         list.unwrap_or(vec![
             "AliYun".to_string(),
+            "Azure".to_string(),
             "ConfigDrive".to_string(),
             "Exoscale".to_string(),
             "GCE".to_string(),
@@ -199,6 +204,7 @@ impl RsIdentify {
             let ds_applies = match candidate_datasource.as_str() {
                 // TEST GAP: These DSes have no tests: CloudStack, CloudSigma, Exoscale, MAAS
                 "AliYun" => self.dscheck_AliYun(),
+                "Azure" => self.dscheck_Azure(),
                 "ConfigDrive" => self.dscheck_ConfigDrive(),
                 "Exoscale" => self.dscheck_Exoscale(),
                 "GCE" => self.dscheck_GCE(),
