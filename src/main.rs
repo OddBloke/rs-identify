@@ -93,6 +93,16 @@ impl RsIdentify {
                 .unwrap_or(false)
     }
 
+    fn dscheck_NoCloud(&self) -> bool {
+        let mut user_data_path = PathBuf::from(self.path_root.clone());
+        let mut meta_data_path = PathBuf::from(self.path_root.clone());
+
+        user_data_path.push("var/lib/cloud/seed/nocloud/user-data");
+        meta_data_path.push("var/lib/cloud/seed/nocloud/meta-data");
+
+        user_data_path.exists() && meta_data_path.exists()
+    }
+
     // Output
     fn write_cfg_out(self, datasource_list: Vec<String>) {
         create_dir_all(self.cfg_out.parent().unwrap()).unwrap();
@@ -156,6 +166,7 @@ impl RsIdentify {
             "AliYun".to_string(),
             "Exoscale".to_string(),
             "GCE".to_string(),
+            "NoCloud".to_string(),
         ])
     }
 
@@ -167,9 +178,11 @@ impl RsIdentify {
         let mut output_datasource_list = vec![];
         for candidate_datasource in input_datasource_list {
             let ds_applies = match candidate_datasource.as_str() {
+                // TEST GAP: These DSes have no tests: CloudStack, CloudSigma, Exoscale, MAAS
                 "AliYun" => self.dscheck_AliYun(),
                 "Exoscale" => self.dscheck_Exoscale(),
                 "GCE" => self.dscheck_GCE(),
+                "NoCloud" => self.dscheck_NoCloud(),
                 _ => false,
             };
             println!("{}", candidate_datasource);
