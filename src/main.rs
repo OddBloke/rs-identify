@@ -3,53 +3,12 @@ use std::fs::{create_dir_all, File};
 use std::io::Write;
 use std::path::PathBuf;
 
-struct DMIHelper<'a> {
-    path_root: &'a PathBuf,
-}
-
-impl<'a> DMIHelper<'_> {
-    fn new(path_root: &'a PathBuf) -> DMIHelper<'a> {
-        DMIHelper { path_root }
-    }
-
-    fn get_field(&self, field_name: &str) -> Option<String> {
-        let mut path = PathBuf::from(self.path_root.clone());
-        path.push("sys/class/dmi/id");
-        path.push(field_name);
-
-        std::fs::read_to_string(&path)
-            .map(|s| s.trim().to_string())
-            .ok()
-    }
-
-    fn chassis_asset_tag(&self) -> Option<String> {
-        self.get_field("chassis_asset_tag")
-    }
-
-    fn product_name(&self) -> Option<String> {
-        // TODO: container check
-        self.get_field("product_name")
-    }
-
-    fn product_serial(&self) -> Option<String> {
-        self.get_field("product_serial")
-    }
-
-    fn product_uuid(&self) -> Option<String> {
-        self.get_field("product_uuid")
-    }
-}
-
 struct RsIdentify {
     // Paths
     path_root: PathBuf,
     cfg_out: PathBuf,
 
-    // DMI values
-    dmi_chassis_asset_tag: Option<String>,
-    dmi_product_name: Option<String>,
-    dmi_product_serial: Option<String>,
-    dmi_product_uuid: Option<String>,
+    dmi_values: BTreeMap<String, Option<String>>,
 }
 
 impl RsIdentify {
@@ -58,19 +17,14 @@ impl RsIdentify {
         let mut cfg_out = PathBuf::from(path_root.clone());
         cfg_out.push("run/cloud-init/cloud.cfg");
 
-        let dmi_helper = DMIHelper::new(&path_root);
-
         // Emit our paths/settings
         println!("PATH_ROOT: {}", path_root.display());
         println!("CFG_OUT: {}", cfg_out.display());
 
         RsIdentify {
-            dmi_chassis_asset_tag: dmi_helper.chassis_asset_tag(),
-            dmi_product_name: dmi_helper.product_name(),
-            dmi_product_serial: dmi_helper.product_serial(),
-            dmi_product_uuid: dmi_helper.product_uuid(),
             path_root,
             cfg_out,
+            dmi_values: BTreeMap::new(),
         }
     }
 
@@ -80,6 +34,38 @@ impl RsIdentify {
             Err(_) => PathBuf::from("/"),
         };
         RsIdentify::new(path_root)
+    }
+
+    // DMI caching
+    fn get_dmi_field(&mut self, field_name: &str) -> &Option<String> {
+        if !self.dmi_values.contains_key(field_name) {
+            let mut path = PathBuf::from(self.path_root.clone());
+            path.push("sys/class/dmi/id");
+            path.push(field_name);
+
+            let value = std::fs::read_to_string(&path)
+                .map(|s| s.trim().to_string())
+                .ok();
+            self.dmi_values.insert(field_name.to_string(), value);
+        }
+        self.dmi_values.get(field_name).unwrap()
+    }
+
+    fn dmi_chassis_asset_tag(&mut self) -> &Option<String> {
+        self.get_dmi_field("chassis_asset_tag")
+    }
+
+    fn dmi_product_name(&mut self) -> &Option<String> {
+        // TODO: container check
+        self.get_dmi_field("product_name")
+    }
+
+    fn dmi_product_serial(&mut self) -> &Option<String> {
+        self.get_dmi_field("product_serial")
+    }
+
+    fn dmi_product_uuid(&mut self) -> &Option<String> {
+        self.get_dmi_field("product_uuid")
     }
 
     // Helpers
@@ -96,17 +82,17 @@ impl RsIdentify {
 
     // Datasource checks
     #[allow(non_snake_case)]
-    fn dscheck_AliYun(&self) -> bool {
+    fn dscheck_AliYun(&mut self) -> bool {
         // TEST GAP: seed directory checks
-        self.dmi_product_name == Some("Alibaba Cloud ECS".to_string())
+        self.dmi_product_name() == &Some("Alibaba Cloud ECS".to_string())
     }
 
     #[allow(non_snake_case)]
-    fn dscheck_Azure(&self) -> bool {
+    fn dscheck_Azure(&mut self) -> bool {
         if self.seed_path_exists(None, "azure", "ovf-env.xml") {
             return true;
         }
-        self.dmi_chassis_asset_tag == Some("7783-7084-3265-9085-8269-3286-77".to_string())
+        self.dmi_chassis_asset_tag() == &Some("7783-7084-3265-9085-8269-3286-77".to_string())
     }
 
     #[allow(non_snake_case)]
@@ -115,15 +101,15 @@ impl RsIdentify {
     }
 
     #[allow(non_snake_case)]
-    fn dscheck_Ec2(&self) -> bool {
+    fn dscheck_Ec2(&mut self) -> bool {
         // TEST_GAP: One of serial or UUID can be missing
         // TEST GAP: Serial and UUID equality is not exercised
         let serial = self
-            .dmi_product_serial
+            .dmi_product_serial()
             .as_ref()
             .map(|s| s.to_ascii_lowercase());
         let uuid = self
-            .dmi_product_uuid
+            .dmi_product_uuid()
             .as_ref()
             .map(|s| s.to_ascii_lowercase());
         serial
@@ -135,16 +121,16 @@ impl RsIdentify {
     }
 
     #[allow(non_snake_case)]
-    fn dscheck_Exoscale(&self) -> bool {
+    fn dscheck_Exoscale(&mut self) -> bool {
         // TEST GAP: I didn't need to implement Exoscale support
-        self.dmi_product_name == Some("Exoscale".to_string())
+        self.dmi_product_name() == &Some("Exoscale".to_string())
     }
 
     #[allow(non_snake_case)]
-    fn dscheck_GCE(&self) -> bool {
-        self.dmi_product_name == Some("Google Compute Engine".to_string())
+    fn dscheck_GCE(&mut self) -> bool {
+        self.dmi_product_name() == &Some("Google Compute Engine".to_string())
             || self
-                .dmi_product_serial
+                .dmi_product_serial()
                 .as_ref()
                 .map(|serial| serial.starts_with("GoogleCloud"))
                 .unwrap_or(false)
@@ -243,7 +229,7 @@ impl RsIdentify {
     }
 
     // Identify
-    fn identify(self) {
+    fn identify(mut self) {
         // Identify!
         let input_datasource_list = self.get_datasource_list();
 
