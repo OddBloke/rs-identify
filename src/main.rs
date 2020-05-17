@@ -182,7 +182,10 @@ impl RsIdentify {
             Err(_) => return None,
             Ok(file) => file,
         };
-        let config: serde_yaml::Mapping = serde_yaml::from_reader(file).unwrap();
+        let config: serde_yaml::Mapping = match serde_yaml::from_reader(file) {
+            Err(_) => return None,
+            Ok(result) => result,
+        };
         config
             .get(&serde_yaml::Value::from("datasource_list"))
             .map(|datasource_list| {
