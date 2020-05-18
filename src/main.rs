@@ -255,7 +255,11 @@ impl RsIdentify {
         // Identify!
         let input_datasource_list = self.get_datasource_list();
 
-        let mut output_datasource_list = self.find_datasources_from_list(input_datasource_list);
+        let mut output_datasource_list = if input_datasource_list.len() == 1 {
+            input_datasource_list
+        } else {
+            self.find_datasources_from_list(input_datasource_list)
+        };
 
         if !output_datasource_list.contains(&"None".to_string()) {
             output_datasource_list.push("None".to_string());
