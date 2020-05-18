@@ -228,11 +228,7 @@ impl RsIdentify {
         ])
     }
 
-    // Identify
-    fn identify(mut self) {
-        // Identify!
-        let input_datasource_list = self.get_datasource_list();
-
+    fn find_datasources_from_list(&mut self, input_datasource_list: Vec<String>) -> Vec<String> {
         let mut output_datasource_list = vec![];
         for candidate_datasource in input_datasource_list {
             let ds_applies = match candidate_datasource.as_str() {
@@ -251,6 +247,15 @@ impl RsIdentify {
                 output_datasource_list.push(candidate_datasource);
             }
         }
+        output_datasource_list
+    }
+
+    // Identify
+    fn identify(mut self) {
+        // Identify!
+        let input_datasource_list = self.get_datasource_list();
+
+        let mut output_datasource_list = self.find_datasources_from_list(input_datasource_list);
 
         if !output_datasource_list.contains(&"None".to_string()) {
             output_datasource_list.push("None".to_string());
