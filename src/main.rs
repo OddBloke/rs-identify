@@ -159,6 +159,11 @@ impl RsIdentify {
         false
     }
 
+    #[allow(non_snake_case)]
+    fn dscheck_Oracle(&mut self) -> bool {
+        self.dmi_chassis_asset_tag() == &Some("OracleCloud.com".to_string())
+    }
+
     // Output
     fn write_cfg_out(self, datasource_list: Vec<String>) {
         create_dir_all(self.cfg_out.parent().unwrap()).unwrap();
@@ -229,6 +234,7 @@ impl RsIdentify {
             "Exoscale".to_string(),
             "GCE".to_string(),
             "NoCloud".to_string(),
+            "Oracle".to_string(),
         ])
     }
 
@@ -244,6 +250,7 @@ impl RsIdentify {
                 "Exoscale" => self.dscheck_Exoscale(),
                 "GCE" => self.dscheck_GCE(),
                 "NoCloud" => self.dscheck_NoCloud(),
+                "Oracle" => self.dscheck_Oracle(),
                 _ => false,
             };
             println!("{}", candidate_datasource);
