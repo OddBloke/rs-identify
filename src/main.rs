@@ -18,7 +18,7 @@ struct RsIdentify {
 impl RsIdentify {
     // Setup
     fn new(path_root: PathBuf) -> RsIdentify {
-        let mut cfg_out = PathBuf::from(path_root.clone());
+        let mut cfg_out = path_root.clone();
         cfg_out.push("run/cloud-init/cloud.cfg");
 
         // Emit our paths/settings
@@ -43,7 +43,7 @@ impl RsIdentify {
     // DMI caching
     fn get_dmi_field(&mut self, field_name: &str) -> &Option<String> {
         if !self.dmi_values.contains_key(field_name) {
-            let mut path = PathBuf::from(self.path_root.clone());
+            let mut path = self.path_root.clone();
             path.push("sys/class/dmi/id");
             path.push(field_name);
 
@@ -74,7 +74,7 @@ impl RsIdentify {
 
     // Helpers
     fn seed_path_exists(&self, prefix: Option<&str>, seed_type: &str, filename: &str) -> bool {
-        let mut seed_path = PathBuf::from(self.path_root.clone());
+        let mut seed_path = self.path_root.clone();
         if let Some(prefix) = prefix {
             seed_path.push(prefix);
         }
@@ -208,9 +208,9 @@ impl RsIdentify {
 
     fn get_datasource_list(&self) -> Vec<String> {
         // Set up all our paths first
-        let mut etc_cloud_path = PathBuf::from(self.path_root.clone());
+        let mut etc_cloud_path = self.path_root.clone();
         etc_cloud_path.push("etc/cloud/cloud.cfg");
-        let mut etc_cloud_d_path = PathBuf::from(self.path_root.clone());
+        let mut etc_cloud_d_path = self.path_root.clone();
         etc_cloud_d_path.push("etc/cloud/cloud.cfg.d");
         let mut cloud_d_paths: Vec<PathBuf> = match std::fs::read_dir(etc_cloud_d_path) {
             Err(_) => vec![],
