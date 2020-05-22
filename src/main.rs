@@ -239,26 +239,24 @@ impl RsIdentify {
     }
 
     fn find_datasources_from_list(&mut self, input_datasource_list: Vec<String>) -> Vec<String> {
-        let mut output_datasource_list = vec![];
-        for candidate_datasource in input_datasource_list {
-            let ds_applies = match candidate_datasource.as_str() {
-                // TEST GAP: These DSes have no tests: CloudStack, CloudSigma, Exoscale, MAAS
-                "AliYun" => self.dscheck_AliYun(),
-                "Azure" => self.dscheck_Azure(),
-                "ConfigDrive" => self.dscheck_ConfigDrive(),
-                "Ec2" => self.dscheck_Ec2(),
-                "Exoscale" => self.dscheck_Exoscale(),
-                "GCE" => self.dscheck_GCE(),
-                "NoCloud" => self.dscheck_NoCloud(),
-                "Oracle" => self.dscheck_Oracle(),
-                _ => false,
-            };
-            println!("{}", candidate_datasource);
-            if ds_applies {
-                output_datasource_list.push(candidate_datasource);
-            }
-        }
-        output_datasource_list
+        input_datasource_list
+            .into_iter()
+            .filter(|candidate_datasource| {
+                println!("{}", candidate_datasource);
+                match candidate_datasource.as_str() {
+                    // TEST GAP: These DSes have no tests: CloudStack, CloudSigma, Exoscale, MAAS
+                    "AliYun" => self.dscheck_AliYun(),
+                    "Azure" => self.dscheck_Azure(),
+                    "ConfigDrive" => self.dscheck_ConfigDrive(),
+                    "Ec2" => self.dscheck_Ec2(),
+                    "Exoscale" => self.dscheck_Exoscale(),
+                    "GCE" => self.dscheck_GCE(),
+                    "NoCloud" => self.dscheck_NoCloud(),
+                    "Oracle" => self.dscheck_Oracle(),
+                    _ => false,
+                }
+            })
+            .collect()
     }
 
     // Identify
