@@ -23,6 +23,7 @@ main() {
         echo "Prepared cloud-init tree not detected; attempting to create"
         setup_tree
     fi
+    cargo build
     (cd cloud-init; pytest tests/unittests/test_ds_identify.py)
 }
 

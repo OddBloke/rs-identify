@@ -19,6 +19,7 @@ will:
 * clone cloud-init
 * replace the in-tree `ds-identify` with a pointer to
   `target/debug/rs-identify`
+* `cargo build`
 * run the ds-identify tests
 
 (It will only perform the first two steps if necessary; if it fails,
