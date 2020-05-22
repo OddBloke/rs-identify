@@ -226,16 +226,18 @@ impl RsIdentify {
         for cloud_d_path in cloud_d_paths {
             list = self.get_datasource_list_from_path(&cloud_d_path).or(list);
         }
-        list.unwrap_or(vec![
-            "AliYun".to_string(),
-            "Azure".to_string(),
-            "ConfigDrive".to_string(),
-            "Ec2".to_string(),
-            "Exoscale".to_string(),
-            "GCE".to_string(),
-            "NoCloud".to_string(),
-            "Oracle".to_string(),
-        ])
+        list.unwrap_or_else(|| {
+            vec![
+                "AliYun".to_string(),
+                "Azure".to_string(),
+                "ConfigDrive".to_string(),
+                "Ec2".to_string(),
+                "Exoscale".to_string(),
+                "GCE".to_string(),
+                "NoCloud".to_string(),
+                "Oracle".to_string(),
+            ]
+        })
     }
 
     fn find_datasources_from_list(&mut self, input_datasource_list: Vec<String>) -> Vec<String> {
