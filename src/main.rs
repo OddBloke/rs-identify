@@ -1,3 +1,7 @@
+// Copyright 2020 Daniel Watkins
+//
+// Use of this source code is governed by the CNPLv4 license that can be found in LICENSE.txt
+
 use std::collections::BTreeMap;
 use std::fs::{create_dir_all, File};
 use std::io::Write;
