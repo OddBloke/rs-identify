@@ -7,6 +7,9 @@ use std::fs::{create_dir_all, File};
 use std::io::Write;
 use std::path::PathBuf;
 
+#[cfg(target_os = "freebsd")]
+use std::process::Command;
+
 struct RsIdentify {
     // Paths
     path_root: PathBuf,
@@ -41,6 +44,7 @@ impl RsIdentify {
     }
 
     // DMI caching
+    #[cfg(target_os = "linux")]
     fn get_dmi_field(&mut self, field_name: &str) -> &Option<String> {
         if !self.dmi_values.contains_key(field_name) {
             let mut path = self.path_root.clone();
@@ -51,6 +55,21 @@ impl RsIdentify {
                 .map(|s| s.trim().to_string())
                 .ok();
             self.dmi_values.insert(field_name.to_string(), value);
+        }
+        self.dmi_values.get(field_name).unwrap()
+    }
+
+    #[cfg(target_os = "freebsd")]
+    fn get_dmi_field(&mut self, field_name: &str) -> &Option<String> {
+        let field_name_cmd = field_name.replace('_', "-");
+        if !self.dmi_values.contains_key(field_name) {
+            let output = Command::new("dmidecode")
+                .args(&["--string", &field_name_cmd])
+                .output()
+                .expect("failed to execute dmidecode");
+            String::from_utf8(output.stdout)
+                .ok()
+                .map(|v| self.dmi_values.insert(field_name.to_string(), Some(v)));
         }
         self.dmi_values.get(field_name).unwrap()
     }
