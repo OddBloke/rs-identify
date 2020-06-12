@@ -44,34 +44,37 @@ impl RsIdentify {
     }
 
     // DMI caching
-    #[cfg(target_os = "linux")]
     fn get_dmi_field(&mut self, field_name: &str) -> &Option<String> {
         if !self.dmi_values.contains_key(field_name) {
             let mut path = self.path_root.clone();
             path.push("sys/class/dmi/id");
             path.push(field_name);
 
-            let value = std::fs::read_to_string(&path)
-                .map(|s| s.trim().to_string())
-                .ok();
+            let value = self.fetch_dmi_field(field_name);
             self.dmi_values.insert(field_name.to_string(), value);
         }
         self.dmi_values.get(field_name).unwrap()
     }
 
+    #[cfg(target_os = "linux")]
+    fn fetch_dmi_field(&mut self, field_name: &str) -> Option<String> {
+        let mut path = self.path_root.clone();
+        path.push("sys/class/dmi/id");
+        path.push(field_name);
+
+        std::fs::read_to_string(&path)
+            .map(|s| s.trim().to_string())
+            .ok()
+    }
+
     #[cfg(target_os = "freebsd")]
-    fn get_dmi_field(&mut self, field_name: &str) -> &Option<String> {
+    fn fetch_dmi_field(&mut self, field_name: &str) -> Option<String> {
         let field_name_cmd = field_name.replace('_', "-");
-        if !self.dmi_values.contains_key(field_name) {
-            let output = Command::new("dmidecode")
-                .args(&["--string", &field_name_cmd])
-                .output()
-                .expect("failed to execute dmidecode");
-            String::from_utf8(output.stdout)
-                .ok()
-                .map(|v| self.dmi_values.insert(field_name.to_string(), Some(v)));
-        }
-        self.dmi_values.get(field_name).unwrap()
+        let output = Command::new("dmidecode")
+            .args(&["--string", &field_name_cmd])
+            .output()
+            .expect("failed to execute dmidecode");
+        String::from_utf8(output.stdout).ok()
     }
 
     fn dmi_chassis_asset_tag(&mut self) -> &Option<String> {
