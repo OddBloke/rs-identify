@@ -162,17 +162,13 @@ impl RsIdentify {
     #[allow(non_snake_case)]
     fn dscheck_NoCloud(&self) -> bool {
         // TEST GAP: nocloud and nocloud-net are not tested for both writable and regular paths
-        for seed_type in &["nocloud", "nocloud-net"] {
-            if self.seed_path_exists(None, seed_type, "user-data")
-                && self.seed_path_exists(None, seed_type, "meta-data")
-            {
-                return true;
-            }
-
-            if self.seed_path_exists(Some("writable/system-data"), seed_type, "user-data")
-                && self.seed_path_exists(Some("writable/system-data"), seed_type, "meta-data")
-            {
-                return true;
+        for prefix in &[None, Some("writable/system-data")] {
+            for seed_type in &["nocloud", "nocloud-net"] {
+                if self.seed_path_exists(*prefix, seed_type, "user-data")
+                    && self.seed_path_exists(*prefix, seed_type, "meta-data")
+                {
+                    return true;
+                }
             }
         }
         false
